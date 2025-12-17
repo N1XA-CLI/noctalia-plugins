@@ -34,13 +34,6 @@ Rectangle {
   //
   // ------ Widget ------
   //
-  function buildTooltip() {
-    if (root.pluginApi?.mainInstance?.updateCount == 0) {
-      TooltipService.show(root, pluginApi?.tr("tooltip.noUpdatesAvailable"), BarService.getTooltipDirection());
-    } else {
-      TooltipService.show(root, pluginApi?.tr("tooltip.updatesAvailable"), BarService.getTooltipDirection());
-    }
-  }
 
   Item {
     id: layout
@@ -87,6 +80,16 @@ Rectangle {
         root.hovered = false;
         TooltipService.hide();
       }
+    }
+  }
+
+  function buildTooltip() {
+    const updateCount = root.pluginApi?.mainInstance?.updateCount
+
+    if (updateCount === 0) {
+      TooltipService.show(root, pluginApi?.tr("tooltip.noUpdatesAvailable"), BarService.getTooltipDirection());
+    } else {
+      TooltipService.show(root, pluginApi?.tr("tooltip.updatesAvailable"), BarService.getTooltipDirection());
     }
   }
 }

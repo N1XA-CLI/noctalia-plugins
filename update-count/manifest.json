@@ -17,7 +17,7 @@
   },
   "metadata": {
     "defaultSettings": {
-      "updateInterval": 300000,
+      "updateIntervalMinutes": 30,
       "updateTerminalCommand": "foot -e",
       "currentIconName": "world-download",
       "hideOnZero": false

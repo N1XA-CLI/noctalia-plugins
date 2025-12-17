@@ -1,15 +1,15 @@
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import qs.Commons
 import qs.Widgets
 
 ColumnLayout {
   id: root
 
-  readonly property int minutesToMillis: 10_000
   property var pluginApi: null
 
-  property int updateInterval: pluginApi?.pluginSettings?.updateInterval || pluginApi?.manifest?.metadata?.defaultSettings?.updateInterval
+  property int updateIntervalMinutes: pluginApi?.pluginSettings?.updateIntervalMinutes || pluginApi?.manifest?.metadata?.defaultSettings?.updateIntervalMinutes
   property string updateTerminalCommand: pluginApi?.pluginSettings?.updateTerminalCommand || pluginApi?.manifest?.metadata.defaultSettings?.updateTerminalCommand
   property string currentIconName: pluginApi?.pluginSettings?.currentIconName || pluginApi?.manifest?.metadata?.defaultSettings?.currentIconName
   property bool hideOnZero: pluginApi?.pluginSettings?.hideOnZero || pluginApi?.manifest?.metadata?.defaultSettings?.hideOnZero
@@ -41,6 +41,7 @@ ColumnLayout {
 
     NLabel {
       label: pluginApi?.tr("settings.currentIconName.label")
+      description: pluginApi?.tr("settings.currentIconName.desc")
     }
 
     NText {
@@ -86,7 +87,6 @@ ColumnLayout {
   }
 
   NTextInput {
-    // Layout.fillWidth: true
     label: pluginApi?.tr("settings.customCmdGetNumUpdate.label")
     description: pluginApi?.tr("settings.customCmdGetNumUpdate.desc")
     placeholderText: pluginApi?.tr("settings.customCmdGetNumUpdate.placeholder")
@@ -95,7 +95,6 @@ ColumnLayout {
   }
 
   NTextInput {
-    // Layout.fillWidth: true
     label: pluginApi?.tr("settings.customCmdDoSystemUpdate.label")
     description: pluginApi?.tr("settings.customCmdDoSystemUpdate.desc")
     placeholderText: pluginApi?.tr("settings.customCmdDoSystemUpdate.placeholder")
@@ -120,17 +119,17 @@ ColumnLayout {
     }
 
     NSlider {
-      from: 5
-      to: 180
-      value: root.updateInterval / root.minutesToMillis
-      stepSize: 5
+      from: 1
+      to: 300
+      value: root.updateIntervalMinutes
+      stepSize: 1
       onValueChanged: {
-        root.updateInterval = value * root.minutesToMillis;
+        root.updateIntervalMinutes = value;
       }
     }
 
     NText {
-      text: (root.updateInterval / root.minutesToMillis).toString().padStart(3, " ") + " minutes"
+      text: root.updateIntervalMinutes.toString().padStart(3, " ") + " minutes"
       color: Settings.data.colorSchemes.darkMode ? Color.mOnSurface : Color.mOnPrimary
     }
   }
@@ -141,7 +140,7 @@ ColumnLayout {
       return;
     }
 
-    pluginApi.pluginSettings.updateInterval = root.updateInterval;
+    pluginApi.pluginSettings.updateIntervalMinutes = root.updateIntervalMinutes;
     pluginApi.pluginSettings.updateTerminalCommand = root.updateTerminalCommand;
     pluginApi.pluginSettings.currentIconName = root.currentIconName;
     pluginApi.pluginSettings.hideOnZero = root.hideOnZero;

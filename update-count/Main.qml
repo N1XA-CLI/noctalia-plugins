@@ -8,9 +8,13 @@ Item {
 
   property var pluginApi: null
 
-  property int updateCount: 0
+  readonly property int minutesToMillis: 60_000
 
-  readonly property int updateInterval: pluginApi?.pluginSettings.updateInterval || pluginApi?.manifest?.metadata.defaultSettings?.updateInterval || 0
+  property int updateCount: 0
+  property string selectedUpdater: ""
+  property bool isInitialized: false
+
+  readonly property int updateIntervalMinutes: pluginApi?.pluginSettings.updateIntervalMinutes || pluginApi?.manifest?.metadata.defaultSettings?.updateIntervalMinutes || 30
   readonly property string updateTerminalCommand: pluginApi?.pluginSettings.updateTerminalCommand || pluginApi?.manifest?.metadata.defaultSettings?.updateTerminalCommand || ""
 
   readonly property string customCmdGetNumUpdate: pluginApi?.pluginSettings.customCmdGetNumUpdate || ""
@@ -21,7 +25,7 @@ Item {
   //
   property bool hasCommandYay: false
   property bool hasCommandParu: false
-  property bool hasCommandCheckupdates: false
+  property bool hasCommandPacman: false
   property bool hasCommandDnf: false
 
   property var updater: [
@@ -40,10 +44,15 @@ Item {
       cmdDoSystemUpdate: "paru -Syu"
     },
     {
-      key: "hasCommandCheckupdates",
-      name: "checkupdates",
+      // FIX: checkupdates is an additional package, pacman -Syu needs sudo. Don't know
+      // what the best way here is. Currently, database would not be updated, which renders
+      // the update function useless.
+      //
+      // cmdGetNumUpdates: "sudo pacman -Sy >/dev/null 2>&1; sudo pacman -Q 2>/dev/null | wc -l",
+      key: "hasCommandPacman",
+      name: "pacman",
       cmdCheck: "command -v pacman >/dev/null 2>&1",
-      cmdGetNumUpdates: "checkupdates 2>/dev/null | wc -l",
+      cmdGetNumUpdates: "pacman -Quq 2>/dev/null | wc -l",
       cmdDoSystemUpdate: "sudo pacman -Syu"
     },
     {
@@ -66,7 +75,6 @@ Item {
     stdout: StdioCollector {
       onStreamFinished: {
         root.checkForUpdater(text);
-        getNumUpdates.running = true;
       }
     }
   }
@@ -89,8 +97,16 @@ Item {
       const entry = updater.find(e => e.key === key);
       const label = entry ? entry.name : key;
 
-      if (present) { Logger.i("UpdateCount", `Detected command: ${label}`); }
+      if (present) {
+        if (root.selectedUpdater === "") {
+          root.selectedUpdater = label;
+        }
+        Logger.i("UpdateCount", `Detected command: ${label}.`);
+      }
     }
+
+    root.isInitialized = true
+    Logger.i("UpdateCount", "Initialization finished.");
   }
 
   //
@@ -99,17 +115,16 @@ Item {
   Timer {
     id: timerGetNumUpdates
 
-    interval: root.updateInterval
-    running: true
+    interval: root.updateIntervalMinutes * root.minutesToMillis
+    running: root.isInitialized
     repeat: true
     onTriggered: function () {
       getNumUpdates.running = true;
     }
   }
 
-  function cmdGetNumUpdates() {
-    if (root.customCmdGetNumUpdate !== "")
-      return root.customCmdGetNumUpdate;
+  function findCmdGetNumUpdates() {
+    if (root.customCmdGetNumUpdate !== "") { return root.customCmdGetNumUpdate; }
 
     for (let i = 0; i < root.updater.length; i++) {
       const e = root.updater[i];
@@ -129,7 +144,10 @@ Item {
 
   Process {
     id: getNumUpdates
-    command: ["sh", "-c", root.cmdGetNumUpdates()]
+
+    running: root.isInitialized
+    command: ["sh", "-c", root.findCmdGetNumUpdates()]
+
     stdout: StdioCollector {
       onStreamFinished: {
         var count = parseInt(text.trim());
@@ -143,7 +161,7 @@ Item {
     getNumUpdates.running = true;
   }
 
-  function cmdDoSystemUpdate() {
+  function findCmdDoSystemUpdate() {
     if (root.customCmdDoSystemUpdate != "") {
       return root.customCmdDoSystemUpdate;
     }
@@ -162,9 +180,19 @@ Item {
     );
   }
 
+  function buildFullUpdateCommand() {
+    const term = root.updateTerminalCommand || "";
+    const cmd  = root.findCmdDoSystemUpdate() || "";
+
+    if (term.indexOf("{}") !== -1) {
+      return term.replace("{}", cmd);
+    }
+    return (term.trim() + " " + cmd).trim();
+  }
+
   Process {
     id: doSystemUpdate
-    command: ["sh", "-c", root.updateTerminalCommand + " " + root.cmdDoSystemUpdate()]
+    command: ["sh", "-c", root.buildFullUpdateCommand()]
   }
 
   function startDoSystemUpdate() {

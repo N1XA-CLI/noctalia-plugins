@@ -5,15 +5,16 @@
       "desc": "Hide the widget when the available update count is 0."
     },
     "currentIconName": {
-      "label": "Current Icon Identifier"
+      "label": "Icon Identifier",
+      "desc": "Currently configured icon name."
     },
     "changeIcon": {
       "label": "Select Icon"
     },
     "terminal": {
       "label": "Terminal Emulator",
-      "desc": "Terminal command used to execute the system update command.",
-      "placeholder": "Enter terminal command (e.g., foot -e, kitty -e) ..."
+      "desc": "Terminal command used to execute the system update command. Optional: {} for update command.",
+      "placeholder": "e.g., foot -e, hyprctl dispatch exec '[float] kitty -e {}'"
     },
     "customCmdGetNumUpdate": {
       "label": "Custom Update Count Command",
