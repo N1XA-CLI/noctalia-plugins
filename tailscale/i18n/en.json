@@ -22,7 +22,10 @@
   "toast": {
     "title": "Tailscale",
     "connected": "Tailscale connected",
-    "disconnected": "Tailscale disconnected"
+    "disconnected": "Tailscale disconnected",
+    "ip-copied": {
+      "title": "IP Copied"
+    }
   },
   "panel": {
     "title": "Tailscale Network",

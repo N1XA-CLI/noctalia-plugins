@@ -1,8 +1,10 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import Quickshell
 import qs.Commons
 import qs.Widgets
+import qs.Services.UI
 
 Item {
   id: root
@@ -12,6 +14,11 @@ Item {
   readonly property bool allowAttach: true
 
   readonly property var mainInstance: pluginApi?.mainInstance
+
+  function copyToClipboard(text) {
+    var escaped = text.replace(/'/g, "'\\''")
+    Quickshell.execDetached(["sh", "-c", "printf '%s' '" + escaped + "' | wl-copy"])
+  }
 
   onPluginApiChanged: {
     if (pluginApi && pluginApi.mainInstance) {
@@ -94,8 +101,25 @@ Item {
             text: mainInstance?.tailscaleIp || ""
             visible: mainInstance?.tailscaleRunning && mainInstance?.tailscaleIp
             pointSize: Style.fontSizeS
-            color: Color.mOnSurfaceVariant
+            color: mainIpMouseArea.containsMouse ? Color.mPrimary : Color.mOnSurfaceVariant
             font.family: Settings.data.ui.fontFixed
+            
+            MouseArea {
+              id: mainIpMouseArea
+              anchors.fill: parent
+              hoverEnabled: true
+              cursorShape: Qt.PointingHandCursor
+              onClicked: function() {
+                if (mainInstance?.tailscaleIp) {
+                  root.copyToClipboard(mainInstance.tailscaleIp)
+                  ToastService.showNotice(
+                    pluginApi?.tr("toast.ip-copied.title") || "IP Copied",
+                    mainInstance.tailscaleIp,
+                    "clipboard"
+                  )
+                }
+              }
+            }
           }
 
           Rectangle {
@@ -153,6 +177,7 @@ Item {
                     }
 
                     NText {
+                      id: peerIpText
                       text: {
                         var ips = []
                         if (modelData.TailscaleIPs && modelData.TailscaleIPs.length > 0) {
@@ -161,9 +186,27 @@ Item {
                         return ips.length > 0 ? ips[0] : ""
                       }
                       pointSize: Style.fontSizeS
-                      color: Color.mOnSurfaceVariant
+                      color: peerIpMouseArea.containsMouse ? Color.mPrimary : Color.mOnSurfaceVariant
                       font.family: Settings.data.ui.fontFixed
                       visible: modelData.TailscaleIPs && modelData.TailscaleIPs.length > 0
+                      
+                      MouseArea {
+                        id: peerIpMouseArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: function(mouse) {
+                          mouse.accepted = true
+                          if (peerIpText.text) {
+                            root.copyToClipboard(peerIpText.text)
+                            ToastService.showNotice(
+                              pluginApi?.tr("toast.ip-copied.title") || "IP Copied",
+                              peerIpText.text,
+                              "clipboard"
+                            )
+                          }
+                        }
+                      }
                     }
                   }
 
