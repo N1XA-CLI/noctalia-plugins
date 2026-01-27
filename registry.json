@@ -124,7 +124,7 @@
     {
       "id": "hello-world",
       "name": "Hello World",
-      "version": "1.0.10",
+      "version": "1.0.11",
       "official": true,
       "author": "Noctalia Team",
       "description": "A simple Hello World plugin demonstrating functionalities. For developers only.",
@@ -134,7 +134,7 @@
       "tags": [
         "Development"
       ],
-      "lastUpdated": "2026-01-26T23:59:29-05:00"
+      "lastUpdated": "2026-01-27T01:00:19-05:00"
     },
     {
       "id": "hyprland-steam-overlay",
@@ -314,7 +314,7 @@
     {
       "id": "privacy-indicator",
       "name": "Privacy Indicator",
-      "version": "1.0.12",
+      "version": "1.0.13",
       "official": true,
       "author": "Noctalia Team",
       "description": "A privacy indicator widget that shows when microphone, camera or screen sharing is active.",
@@ -326,7 +326,7 @@
         "Privacy",
         "Indicator"
       ],
-      "lastUpdated": "2026-01-27T00:43:28-05:00"
+      "lastUpdated": "2026-01-27T01:00:19-05:00"
     },
     {
       "id": "rss-feed",
@@ -423,7 +423,7 @@
     {
       "id": "timer",
       "name": "Timer",
-      "version": "1.0.10",
+      "version": "1.0.11",
       "official": true,
       "author": "Noctalia Team",
       "description": "A timer and stopwatch plugin for the bar & control center.",
@@ -434,7 +434,7 @@
         "Bar",
         "Utility"
       ],
-      "lastUpdated": "2026-01-27T00:43:28-05:00"
+      "lastUpdated": "2026-01-27T01:00:19-05:00"
     },
     {
       "id": "todo",
