@@ -72,6 +72,28 @@ Item {
     }
     radius: Style.radiusL
 
+    // Background Progress Bar Visualization
+    Rectangle {
+      id: progressBar
+      anchors.left: parent.left
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+
+      width: {
+        if (!mainInstance || mainInstance.pomodoroTotalSeconds <= 0) return 0;
+        return parent.width * (mainInstance.pomodoroRemainingSeconds / mainInstance.pomodoroTotalSeconds);
+      }
+
+      color: {
+        if (mainInstance && mainInstance.pomodoroMode === modeWork) return Color.mPrimary
+        return Color.mSecondary
+      }
+      opacity: 0.6
+      radius: parent.radius
+
+      Behavior on width { NumberAnimation { duration: 1000 } }
+    }
+
     RowLayout {
       id: contentRow
       anchors.centerIn: parent
@@ -79,11 +101,13 @@ Item {
       layoutDirection: Qt.LeftToRight
 
       NIcon {
+        visible: !isActive || barIsVertical
         icon: getModeIcon()
         applyUiScale: false
         color: {
           if (mainInstance && (mainInstance.pomodoroRunning || mainInstance.pomodoroSoundPlaying)) {
-            return Color.mPrimary
+            if (mainInstance.pomodoroMode === modeWork) return Color.mPrimary
+            return Color.mSecondary
           }
           return mouseArea.containsMouse ? Color.mOnHover : Color.mOnSurface
         }
@@ -92,14 +116,15 @@ Item {
       NText {
         visible: !barIsVertical && mainInstance && (mainInstance.pomodoroRunning || mainInstance.pomodoroRemainingSeconds > 0 || mainInstance.pomodoroTotalSeconds > 0)
         family: Settings.data.ui.fontFixed
-        pointSize: Style.barFontSize
+        pointSize: pluginApi?.pluginSettings?.barFontSize ?? Style.barFontSize ?? 12
         text: {
           if (!mainInstance) return ""
           return formatTime(mainInstance.pomodoroRemainingSeconds)
         }
         color: {
           if (mainInstance && (mainInstance.pomodoroRunning || mainInstance.pomodoroSoundPlaying)) {
-            return Color.mPrimary
+            if (mainInstance.pomodoroMode === modeWork) return Color.mPrimary
+            return Color.mSecondary
           }
           return mouseArea.containsMouse ? Color.mOnHover : Color.mOnSurface
         }
@@ -151,8 +176,10 @@ Item {
     }
 
     onTriggered: action => {
-      contextMenu.close();
-      PanelService.closeContextMenu(screen);
+        var popupMenuWindow = PanelService.getPopupMenuWindow(screen);
+        if (popupMenuWindow) {
+            popupMenuWindow.close();
+        }
 
       if (action === "widget-settings") {
         BarService.openPluginSettings(screen, pluginApi.manifest);
@@ -187,7 +214,11 @@ Item {
           pluginApi.openPanel(root.screen, root)
         }
       } else if (mouse.button === Qt.RightButton) {
-        PanelService.showContextMenu(contextMenu, root, screen);
+          var popupMenuWindow = PanelService.getPopupMenuWindow(screen);
+          if (popupMenuWindow) {
+              popupMenuWindow.showContextMenu(contextMenu);
+              contextMenu.openAtItem(root, screen);
+          }
       } else if (mouse.button === Qt.MiddleButton) {
         if (!mainInstance)
           return
