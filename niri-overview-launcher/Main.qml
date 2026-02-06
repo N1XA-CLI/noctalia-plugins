@@ -1,6 +1,5 @@
 import QtQuick
 import Quickshell
-import Quickshell.Io
 import Quickshell.Wayland
 import qs.Services.Compositor
 import qs.Services.UI
@@ -8,42 +7,14 @@ import qs.Services.UI
 Item {
     id: root
     property var pluginApi: null
-    property bool inOverview: false
+    property bool inOverview: CompositorService.overviewActive
     property bool launcherOpen: false
-    readonly property bool isNiri: CompositorService.isNiri
 
-    readonly property string socketPath: Quickshell.env("NIRI_SOCKET")
+    Connections {
+        target: CompositorService
 
-    Socket {
-        id: eventStreamSocket
-        path: root.socketPath
-        connected: root.isNiri && root.socketPath !== ""
-
-        onConnectionStateChanged: {
-            if (connected) {
-                write('"EventStream"\n');
-            }
-        }
-
-        parser: SplitParser {
-            onRead: line => {
-                try {
-                    const event = JSON.parse(line);
-                    handleNiriEvent(event);
-                } catch (e) {
-                    console.warn("niri-overview-launcher: Failed to parse event:", line, e);
-                }
-            }
-        }
-    }
-
-    function handleNiriEvent(event) {
-        const eventType = Object.keys(event)[0];
-
-        if (eventType === 'OverviewOpenedOrClosed') {
-            root.inOverview = event.OverviewOpenedOrClosed.is_open;
-            // Reset launcher state when overview closes
-            if (!root.inOverview) {
+        function onOverviewActiveChanged() {
+            if (!CompositorService.overviewActive) {
                 root.launcherOpen = false;
             }
         }
@@ -82,7 +53,7 @@ Item {
 
             WlrLayershell.namespace: "noctalia:niri-overview-launcher"
             WlrLayershell.layer: WlrLayer.Overlay
-            WlrLayershell.exclusiveZone: -1
+						WlrLayershell.exclusionMode: ExclusionMode.Ignore
             WlrLayershell.keyboardFocus: {
                 if (!root.inOverview) return WlrKeyboardFocus.None;
                 if (root.launcherOpen) return WlrKeyboardFocus.None;
