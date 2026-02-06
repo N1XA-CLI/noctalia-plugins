@@ -60,8 +60,6 @@ Item {
         "~/Pictures/Wallpapers"
 
 
-
-
     /***************************
     * WALLPAPER FUNCTIONALITY
     ***************************/
@@ -90,6 +88,7 @@ Item {
         pluginApi.saveSettings();
     }
 
+
     /***************************
     * HELPER FUNCTIONALITY
     ***************************/
@@ -105,6 +104,7 @@ Item {
     function thumbRegenerate() {
         thumbnails.thumbRegenerate();
     }
+
 
     /***************************
     * COMPONENTS
